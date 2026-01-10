@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>サーバーバックアップ自動化ツール - デザインテーマ選択</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans JP', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+            color: #1a202c;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+            line-height: 1.6;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 1rem;
+            border-radius: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .tab-button {
+            padding: 1rem 2rem;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .tab-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .tab-button.active {
+            background: white;
+            color: #667eea;
+            border-color: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .theme-content {
+            display: none;
+            background: white;
+            border-radius: 24px;
+            padding: 3rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: fadeIn 0.5s ease;
+        }
+
+        .theme-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .theme-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .theme-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .theme-subtitle {
+            font-size: 1.1rem;
+            color: #64748b;
+            margin-bottom: 1rem;
+        }
+
+        .theme-tags {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .tag {
+            padding: 0.5rem 1rem;
+            background: #f1f5f9;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            color: #475569;
+            font-weight: 500;
+        }
+
+        .mockup-container {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .mockup-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: #334155;
+        }
+
+        /* テーマ1: ミニマル・クリア */
+        .theme1 .app-window {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .theme1 .app-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .theme1 .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            color: #10b981;
+        }
+
+        .theme1 .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .theme1 .app-body {
+            padding: 3rem 2rem;
+        }
+
+        .theme1 .folder-select {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .theme1 .folder-select label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.75rem;
+        }
+
+        .theme1 .folder-dropdown {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 1rem;
+            background: white;
+        }
+
+        .theme1 .backup-button {
+            width: 100%;
+            padding: 1rem;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .theme1 .backup-button:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .theme1 .progress-section {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: #f9fafb;
+            border-radius: 8px;
+        }
+
+        .theme1 .progress-bar {
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .theme1 .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+            width: 65%;
+            transition: width 0.3s ease;
+        }
+
+        .theme1 .progress-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            font-size: 0.875rem;
+        }
+
+        .theme1 .stat-item {
+            text-align: center;
+        }
+
+        .theme1 .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        .theme1 .stat-label {
+            color: #6b7280;
+            margin-top: 0.25rem;
+        }
+
+        /* テーマ2: グラスモーフィズム */
+        .theme2 .app-window {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 24px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .theme2 .app-header {
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .theme2 .connection-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1.5rem;
+            background: rgba(16, 185, 129, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 50px;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .theme2 .status-icon {
+            width: 12px;
+            height: 12px;
+            background: #10b981;
+            border-radius: 50%;
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.6);
+        }
+
+        .theme2 .app-body {
+            padding: 3rem 2rem;
+        }
+
+        .theme2 .glass-card {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .theme2 .folder-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .theme2 .folder-card {
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 12px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .theme2 .folder-card:hover {
+            background: rgba(255, 255, 255, 0.4);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+        }
+
+        .theme2 .folder-card.selected {
+            background: rgba(139, 92, 246, 0.3);
+            border-color: rgba(139, 92, 246, 0.6);
+        }
+
+        .theme2 .folder-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .theme2 .folder-name {
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .theme2 .folder-size {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-top: 0.25rem;
+        }
+
+        .theme2 .backup-button {
+            width: 100%;
+            padding: 1.25rem;
+            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            font-size: 1.125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 24px rgba(139, 92, 246, 0.3);
+        }
+
+        .theme2 .backup-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(139, 92, 246, 0.4);
+        }
+
+        /* テーマ3: ダークモード・プロフェッショナル */
+        .theme3 .app-window {
+            background: #1e293b;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            overflow: hidden;
+            border: 1px solid #334155;
+        }
+
+        .theme3 .app-header {
+            padding: 1.5rem 2rem;
+            background: #0f172a;
+            border-bottom: 1px solid #334155;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .theme3 .logo {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #f8fafc;
+        }
+
+        .theme3 .header-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .theme3 .icon-button {
+            width: 36px;
+            height: 36px;
+            background: #334155;
+            border: none;
+            border-radius: 8px;
+            color: #cbd5e1;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .theme3 .icon-button:hover {
+            background: #475569;
+            color: #f8fafc;
+        }
+
+        .theme3 .app-body {
+            padding: 2rem;
+        }
+
+        .theme3 .terminal-section {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+        }
+
+        .theme3 .terminal-header {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .theme3 .terminal-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .theme3 .dot-red { background: #ef4444; }
+        .theme3 .dot-yellow { background: #f59e0b; }
+        .theme3 .dot-green { background: #10b981; }
+
+        .theme3 .terminal-content {
+            color: #94a3b8;
+            font-size: 0.875rem;
+            line-height: 1.8;
+        }
+
+        .theme3 .terminal-prompt {
+            color: #10b981;
+        }
+
+        .theme3 .terminal-path {
+            color: #3b82f6;
+        }
+
+        .theme3 .control-panel {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .theme3 .panel-card {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .theme3 .panel-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #cbd5e1;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+        }
+
+        .theme3 .folder-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .theme3 .folder-item {
+            padding: 1rem;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .theme3 .folder-item:hover {
+            background: #334155;
+            border-color: #475569;
+        }
+
+        .theme3 .folder-item.selected {
+            background: #1e40af;
+            border-color: #3b82f6;
+        }
+
+        .theme3 .folder-label {
+            color: #f8fafc;
+            font-weight: 500;
+        }
+
+        .theme3 .folder-meta {
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+
+        .theme3 .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .theme3 .stat-card {
+            padding: 1rem;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .theme3 .stat-number {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #3b82f6;
+        }
+
+        .theme3 .stat-desc {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-top: 0.25rem;
+        }
+
+        .theme3 .action-button {
+            width: 100%;
+            padding: 1rem;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 1rem;
+        }
+
+        .theme3 .action-button:hover {
+            background: #2563eb;
+        }
+
+        /* テーマ4: カラフル・フレンドリー */
+        .theme4 .app-window {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-radius: 32px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            overflow: hidden;
+            border: 3px solid #fbbf24;
+        }
+
+        .theme4 .app-header {
+            padding: 2rem;
+            background: white;
+            text-align: center;
+        }
+
+        .theme4 .mascot {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .theme4 .welcome-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+
+        .theme4 .subtitle {
+            color: #6b7280;
+        }
+
+        .theme4 .app-body {
+            padding: 2rem;
+        }
+
+        .theme4 .steps-container {
+            background: white;
+            border-radius: 24px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .theme4 .step {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            align-items: flex-start;
+        }
+
+        .theme4 .step:last-child {
+            margin-bottom: 0;
+        }
+
+        .theme4 .step-number {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: white;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        }
+
+        .theme4 .step-content {
+            flex: 1;
+        }
+
+        .theme4 .step-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+
+        .theme4 .step-description {
+            color: #6b7280;
+            margin-bottom: 1rem;
+        }
+
+        .theme4 .folder-selector {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .theme4 .folder-button {
+            padding: 1.5rem;
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .theme4 .folder-button:hover {
+            background: #fef3c7;
+            border-color: #fbbf24;
+            transform: scale(1.05);
+        }
+
+        .theme4 .folder-button.selected {
+            background: #fef3c7;
+            border-color: #f59e0b;
+            box-shadow: 0 4px 16px rgba(245, 158, 11, 0.2);
+        }
+
+        .theme4 .folder-emoji {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .theme4 .folder-text {
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .theme4 .big-button {
+            width: 100%;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            border-radius: 24px;
+            font-size: 1.25rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+        }
+
+        .theme4 .big-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(16, 185, 129, 0.4);
+        }
+
+        .theme4 .success-message {
+            background: white;
+            border-radius: 24px;
+            padding: 2rem;
+            text-align: center;
+            border: 3px solid #10b981;
+        }
+
+        .theme4 .success-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .theme4 .success-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+
+        .theme4 .success-details {
+            color: #6b7280;
+            line-height: 1.6;
+        }
+
+        .comparison-table {
+            margin-top: 2rem;
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .comparison-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .comparison-table th {
+            font-weight: 600;
+            color: #1f2937;
+            background: #f9fafb;
+        }
+
+        .comparison-table td {
+            color: #4b5563;
+        }
+
+        .comparison-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .features-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: #f9fafb;
+            border-radius: 8px;
+        }
+
+        .feature-icon {
+            width: 24px;
+            height: 24px;
+            background: #10b981;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .feature-text {
+            font-size: 0.875rem;
+            color: #1f2937;
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.75rem;
+            }
+
+            .theme-content {
+                padding: 1.5rem;
+            }
+
+            .control-panel {
+                grid-template-columns: 1fr;
+            }
+
+            .folder-selector {
+                grid-template-columns: 1fr;
+            }
+
+            .features-list {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 サーバーバックアップ自動化ツール</h1>
+            <p>デザインテーマ選択 - 2025年最新トレンド対応</p>
+            <p style="margin-top: 0.5rem; font-size: 0.95rem;">4つの戦略的デザインから、プロジェクトに最適なテーマを選択してください</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-button active" onclick="showTheme(1)">
+                テーマ1: ミニマル・クリア
+            </button>
+            <button class="tab-button" onclick="showTheme(2)">
+                テーマ2: グラスモーフィズム
+            </button>
+            <button class="tab-button" onclick="showTheme(3)">
+                テーマ3: ダークモード
+            </button>
+            <button class="tab-button" onclick="showTheme(4)">
+                テーマ4: カラフル
+            </button>
+        </div>
+
+        <!-- テーマ1: ミニマル・クリア -->
+        <div id="theme1" class="theme-content active theme1">
+            <div class="theme-header">
+                <div class="theme-title">テーマ1: ミニマル・クリア</div>
+                <div class="theme-subtitle">シンプルで機能的、長時間利用でも疲れない洗練されたデザイン</div>
+                <div class="theme-tags">
+                    <span class="tag">クリーンレイアウト</span>
+                    <span class="tag">高可読性</span>
+                    <span class="tag">直感的操作</span>
+                    <span class="tag">エンタープライズ向け</span>
+                </div>
+            </div>
+
+            <div class="mockup-container">
+                <div class="mockup-title">メインページ - バックアップ実行画面</div>
+                <div class="app-window">
+                    <div class="app-header">
+                        <h2 style="font-size: 1.25rem; font-weight: 600;">サーバーバックアップ</h2>
+                        <div class="status-indicator">
+                            <div class="status-dot"></div>
+                            <span>sv12345.xserver.jp に接続中</span>
+                        </div>
+                    </div>
+                    <div class="app-body">
+                        <div class="folder-select">
+                            <label for="folder1">バックアップするフォルダを選択</label>
+                            <select id="folder1" class="folder-dropdown">
+                                <option>bouon-boushin.net (2.4 GB)</option>
+                                <option>example.com (1.8 GB)</option>
+                                <option>blog.example.net (850 MB)</option>
+                                <option>カスタムパスを入力...</option>
+                            </select>
+                        </div>
+                        <button class="backup-button">
+                            バックアップ開始
+                        </button>
+                        <div class="progress-section">
+                            <div style="margin-bottom: 1rem; font-weight: 600; color: #1f2937;">転送中: 1,234 / 1,890 ファイル</div>
+                            <div class="progress-bar">
+                                <div class="progress-fill"></div>
+                            </div>
+                            <div class="progress-stats">
+                                <div class="stat-item">
+                                    <div class="stat-value">65%</div>
+                                    <div class="stat-label">完了</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value">8.2 MB/s</div>
+                                    <div class="stat-label">転送速度</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value">2分34秒</div>
+                                    <div class="stat-label">残り時間</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="comparison-table">
+                <h3 style="margin-bottom: 1rem; font-size: 1.125rem; font-weight: 600;">このテーマの特徴</h3>
+                <table>
+                    <tr>
+                        <th>項目</th>
+                        <th>詳細</th>
+                    </tr>
+                    <tr>
+                        <td>デザイン哲学</td>
+                        <td>2025年トレンドの「機能的ミニマリズム」- 必要な要素だけを洗練された形で提示</td>
+                    </tr>
+                    <tr>
+                        <td>カラーパレット</td>
+                        <td>白ベース、グレースケール中心、アクセントにBlue (#3b82f6)</td>
+                    </tr>
+                    <tr>
+                        <td>適用場面</td>
+                        <td>企業向け、長時間作業、技術者ユーザー</td>
+                    </tr>
+                    <tr>
+                        <td>実装難易度</td>
+                        <td>低 - Tailwind CSSの標準コンポーネントで実装可能</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="features-list">
+                <div class="feature-item">
+                    <div class="feature-icon">✓</div>
+                    <div class="feature-text">3クリック以内で操作完了</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">✓</div>
+                    <div class="feature-text">視覚的な進捗フィードバック</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">✓</div>
+                    <div class="feature-text">目に優しいカラースキーム</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">✓</div>
+                    <div class="feature-text">プロフェッショナルな印象</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- テーマ2: グラスモーフィズム -->
+        <div id="theme2" class="theme-content theme2">
+            <div class="theme-header">
+                <div class="theme-title">テーマ2: グラスモーフィズム</div>
+                <div class="theme-subtitle">2025年トレンドの透明感とボケ効果で、モダンで美しいUI</div>
+                <div class="theme-tags">
+                    <span class="tag">最新トレンド</span>
+                    <span class="tag">視覚的インパクト</span>
+                    <span class="tag">depth表現</span>
+                    <span class="tag">モダン</span>
+                </div>
+            </div>
+
+            <div class="mockup-container" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 3rem;">
+                <div class="mockup-title" style="color: white; margin-bottom: 2rem;">メインページ - カード選択方式</div>
+                <div class="app-window">
+                    <div class="app-header">
+                        <div class="connection-status">
+                            <div class="status-icon"></div>
+                            <span style="font-weight: 600; color: #1f2937;">接続成功</span>
+                        </div>
+                    </div>
+                    <div class="app-body">
+                        <div class="glass-card">
+                            <h3 style="font-weight: 600; margin-bottom: 1.5rem; color: #1f2937; font-size: 1.125rem;">バックアップするフォルダを選択</h3>
+                            <div class="folder-grid">
+                                <div class="folder-card selected">
+                                    <div class="folder-icon">📁</div>
+                                    <div class="folder-name">bouon-boushin.net</div>
+                                    <div class="folder-size">2.4 GB • 1,890 files</div>
+                                </div>
+                                <div class="folder-card">
+                                    <div class="folder-icon">📁</div>
+                                    <div class="folder-name">example.com</div>
+                                    <div class="folder-size">1.8 GB • 1,234 files</div>
+                                </div>
+                                <div class="folder-card">
+                                    <div class="folder-icon">📁</div>
+                                    <div class="folder-name">blog.example.net</div>
+                                    <div class="folder-size">850 MB • 567 files</div>
+                                </div>
+                                <div class="folder-card">
+                                    <div class="folder-icon">➕</div>
+                                    <div class="folder-name">カスタムパス</div>
+                                    <div class="folder-size">手動入力</div>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="backup-button">
+                            🚀 バックアップ開始
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="comparison-table">
+                <h3 style="margin-bottom: 1rem; font-size: 1.125rem; font-weight: 600;">このテーマの特徴</h3>
+                <table>
+                    <tr>
+                        <th>項目</th>
+                        <th>詳細</th>
+                    </tr>
+                    <tr>
+                        <td>デザイン哲学</td>
+                        <td>透明感とボケ効果でdepthを表現する2025年最先端トレンド</td>
+                    </tr>
+                    <tr>
+                        <td>カラーパレット</td>
+                        <td>半透明レイヤー、グラデーション背景、Purple/Indigoアクセント</td>
+                    </tr>
+                    <tr>
+                        <td>適用場面</td>
+                        <td>デザイン重視、プレゼンテーション、視覚的インパクト重視</td>
+                    </tr>
+                    <tr>
+                        <td>実装難易度</td>
+                        <td>中 - backdrop-filter対応、パフォーマンス最適化が必要</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="features-list">
+                <div class="feature-item">
+                    <div class="feature-icon">✓</div>
+                    <div class="feature-text">視覚的に美しく印象的</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">✓</div>
+                    <div class="feature-text">カード選択で直感的</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">✓</div>
+                    <div class="feature-text">2025年最新トレンド</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">✓</div>
+                    <div class="feature-text">深みのあるUI表現</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- テーマ3: ダークモード・プロフェッショナル -->
+        <div id="theme3" class="theme-content theme3">
+            <div class="theme-header">
+                <div class="theme-title">テーマ3: ダークモード・プロフェッショナル</div>
+                <div class="theme-subtitle">開発者向け、ターミナルライクな高機能UIで技術的な信頼性を演出</div>
+                <div class="theme-tags">
+                    <span class="tag">開発者向け</span>
+                    <span class="tag">目に優しい</span>
+                    <span class="tag">高機能</span>
+                    <span class="tag">技術的</span>
+                </div>
+            </div>
+
+            <div class="mockup-container" style="background: #0f172a; padding: 3rem;">
+                <div class="mockup-title" style="color: #cbd5e1; margin-bottom: 2rem;">メインページ - ターミナル統合型</div>
+                <div class="app-window">
+                    <div class="app-header">
+                        <div class="logo">⚡ BackupTool</div>
+                        <div class="header-actions">
+                            <button class="icon-button">⚙️</button>
+                            <button class="icon-button">📊</button>
+                            <button class="icon-button">❓</button>
+                        </div>
+                    </div>
+                    <div class="app-body">
+                        <div class="terminal-section">
+                            <div class="terminal-header">
+                                <div class="terminal-dot dot-red"></div>
+                                <div class="terminal-dot dot-yellow"></div>
+                                <div class="terminal-dot dot-green"></div>
+                            </div>
+                            <div class="terminal-content">
+                                <div><span class="terminal-prompt">→</span> Connecting to sv12345.xserver.jp:10022...</div>
+                                <div><span class="terminal-prompt">✓</span> SSH authentication successful</div>
+                                <div><span class="terminal-prompt">→</span> Scanning remote directory <span class="terminal-path">/bouon-boushin.net/public_html</span></div>
+                                <div><span class="terminal-prompt">✓</span> Found 1,890 files (2.4 GB)</div>
+                            </div>
+                        </div>
+                        <div class="control-panel">
+                            <div class="panel-card">
+                                <div class="panel-title">Select Backup Source</div>
+                                <div class="folder-list">
+                                    <div class="folder-item selected">
+                                        <div>
+                                            <div class="folder-label">📁 bouon-boushin.net</div>
+                                            <div class="folder-meta">2.4 GB • Last backup: 2h ago</div>
+                                        </div>
+                                    </div>
+                                    <div class="folder-item">
+                                        <div>
+                                            <div class="folder-label">📁 example.com</div>
+                                            <div class="folder-meta">1.8 GB • Last backup: 1d ago</div>
+                                        </div>
+                                    </div>
+                                    <div class="folder-item">
+                                        <div>
+                                            <div class="folder-label">📁 blog.example.net</div>
+                                            <div class="folder-meta">850 MB • Last backup: 3d ago</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="panel-card">
+                                <div class="panel-title">Statistics</div>
+                                <div class="stats-grid">
+                                    <div class="stat-card">
+                                        <div class="stat-number">1,890</div>
+                                        <div class="stat-desc">Files</div>
+                                    </div>
+                                    <div class="stat-card">
+                                        <div class="stat-number">2.4 GB</div>
+                                        <div class="stat-desc">Total Size</div>
+                                    </div>
+                                    <div class="stat-card">
+                                        <div class="stat-number">~8 min</div>
+                                        <div class="stat-desc">Estimated Time</div>
+                                    </div>
+                                </div>
+                                <button class="action-button">Start Backup</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="comparison-table">
+                <h3 style="margin-bottom: 1rem; font-size: 1.125rem; font-weight: 600;">このテーマの特徴</h3>
+                <table>
+                    <tr>
+                        <th>項目</th>
+                        <th>詳細</th>
+                    </tr>
+                    <tr>
+                        <td>デザイン哲学</td>
+                        <td>ターミナル・コンソールライクな開発者向けUI、技術的信頼性の演出</td>
+                    </tr>
+                    <tr>
+                        <td>カラーパレット</td>
+                        <td>ダークグレー基調、Slate色系統、Blue/Greenアクセント</td>
+                    </tr>
+                    <tr>
+                        <td>適用場面</td>
+                        <td>技術者、開発者、夜間作業、長時間モニタリング</td>
+                    </tr>
+                    <tr>
+                        <td>実装難易度</td>
+                        <td>中 - ダークモードの色調整、コントラスト最適化が必要</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="features-list">
+                <div class="feature-item">
+                    <div class="feature-icon">✓</div>
+                    <div class="feature-text">目の疲労軽減</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">✓</div>
+                    <div class="feature-text">技術的な信頼感</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">✓</div>
+                    <div class="feature-text">詳細なログ表示</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">✓</div>
+                    <div class="feature-text">プロフェッショナル</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- テーマ4: カラフル・フレンドリー -->
+        <div id="theme4" class="theme-content theme4">
+            <div class="theme-header">
+                <div class="theme-title">テーマ4: カラフル・フレンドリー</div>
+                <div class="theme-subtitle">技術知識ゼロの人でも安心、ステップバイステップで楽しく使える親しみやすいデザイン</div>
+                <div class="theme-tags">
+                    <span class="tag">初心者向け</span>
+                    <span class="tag">視覚的ガイド</span>
+                    <span class="tag">親しみやすい</span>
+                    <span class="tag">楽しい</span>
+                </div>
+            </div>
+
+            <div class="mockup-container" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); padding: 3rem;">
+                <div class="mockup-title" style="margin-bottom: 2rem; color: #1f2937;">メインページ - ステップガイド方式</div>
+                <div class="app-window">
+                    <div class="app-header">
+                        <div class="mascot">🎉</div>
+                        <div class="welcome-text">バックアップを始めましょう!</div>
+                        <div class="subtitle">かんたん3ステップで完了します</div>
+                    </div>
+                    <div class="app-body">
+                        <div class="steps-container">
+                            <div class="step">
+                                <div class="step-number">1</div>
+                                <div class="step-content">
+                                    <div class="step-title">バックアップしたいフォルダを選ぶ</div>
+                                    <div class="step-description">サーバーにあるフォルダから選んでください</div>
+                                    <div class="folder-selector">
+                                        <div class="folder-button selected">
+                                            <div class="folder-emoji">🌐</div>
+                                            <div class="folder-text">bouon-boushin.net</div>
+                                            <div style="font-size: 0.75rem; color: #6b7280; margin-top: 0.25rem;">2.4 GB</div>
+                                        </div>
+                                        <div class="folder-button">
+                                            <div class="folder-emoji">📝</div>
+                                            <div class="folder-text">example.com</div>
+                                            <div style="font-size: 0.75rem; color: #6b7280; margin-top: 0.25rem;">1.8 GB</div>
+                                        </div>
+                                        <div class="folder-button">
+                                            <div class="folder-emoji">✍️</div>
+                                            <div class="folder-text">blog.example.net</div>
+                                            <div style="font-size: 0.75rem; color: #6b7280; margin-top: 0.25rem;">850 MB</div>
+                                        </div>
+                                        <div class="folder-button">
+                                            <div class="folder-emoji">➕</div>
+                                            <div class="folder-text">別のフォルダ</div>
+                                            <div style="font-size: 0.75rem; color: #6b7280; margin-top: 0.25rem;">手動入力</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="step">
+                                <div class="step-number">2</div>
+                                <div class="step-content">
+                                    <div class="step-title">保存先を確認</div>
+                                    <div class="step-description">
+                                        💾 ダウンロードフォルダに保存されます<br>
+                                        📁 <span style="font-family: monospace; background: #f3f4f6; padding: 0.25rem 0.5rem; border-radius: 4px;">/Users/username/Downloads/backups/</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="step">
+                                <div class="step-number">3</div>
+                                <div class="step-content">
+                                    <div class="step-title">ボタンを押すだけ!</div>
+                                    <div class="step-description">あとは自動でバックアップします</div>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="big-button">
+                            <span>🚀</span>
+                            <span>バックアップ開始!</span>
+                        </button>
+                        <div class="success-message" style="margin-top: 1.5rem; display: none;">
+                            <div class="success-icon">✅</div>
+                            <div class="success-title">バックアップ完了!</div>
+                            <div class="success-details">
+                                1,890個のファイル(2.4 GB)を安全に保存しました<br>
+                                保存場所を開く →
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="comparison-table">
+                <h3 style="margin-bottom: 1rem; font-size: 1.125rem; font-weight: 600;">このテーマの特徴</h3>
+                <table>
+                    <tr>
+                        <th>項目</th>
+                        <th>詳細</th>
+                    </tr>
+                    <tr>
+                        <td>デザイン哲学</td>
+                        <td>初心者に優しいステップバイステップガイド、視覚的フィードバック重視</td>
+                    </tr>
+                    <tr>
+                        <td>カラーパレット</td>
+                        <td>暖色系(Yellow/Orange)、親しみやすいGreen、多彩な絵文字活用</td>
+                    </tr>
+                    <tr>
+                        <td>適用場面</td>
+                        <td>非技術者、初めて使う人、わかりやすさ重視、家庭用</td>
+                    </tr>
+                    <tr>
+                        <td>実装難易度</td>
+                        <td>低 - シンプルな構造、わかりやすいUI要素</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="features-list">
+                <div class="feature-item">
+                    <div class="feature-icon">✓</div>
+                    <div class="feature-text">視覚的ステップガイド</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">✓</div>
+                    <div class="feature-text">絵文字で直感理解</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">✓</div>
+                    <div class="feature-text">成功体験の演出</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">✓</div>
+                    <div class="feature-text">親しみやすい雰囲気</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showTheme(themeNumber) {
+            // すべてのタブとコンテンツを非アクティブ化
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelectorAll('.theme-content').forEach(content => {
+                content.classList.remove('active');
+            });
+
+            // 選択されたタブとコンテンツをアクティブ化
+            document.querySelectorAll('.tab-button')[themeNumber - 1].classList.add('active');
+            document.getElementById(`theme${themeNumber}`).classList.add('active');
+
+            // スムーズにスクロール
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // 初期表示時のアニメーション
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🎨 デザインテーマセレクター v1.0 起動');
+            console.log('📊 4つのテーマが表示されました');
+        });
+
+        // テーマ選択のログ記録（開発用）
+        document.querySelectorAll('.tab-button').forEach((btn, index) => {
+            btn.addEventListener('click', () => {
+                console.log(`🎯 テーマ${index + 1}が選択されました`);
+            });
+        });
+    </script>
+</body>
+</html>
