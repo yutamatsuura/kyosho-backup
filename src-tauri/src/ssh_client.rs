@@ -97,7 +97,7 @@ impl SshClient {
         }
     }
 
-    /// SSH接続をテストする
+    /// SSH接続をテストする（エラー分類対応）
     pub async fn test_connection(&mut self) -> Result<String> {
         let connection_future = async {
             // TCP接続
@@ -200,10 +200,16 @@ impl SshClient {
             ))
         };
 
-        // 30秒でタイムアウト
-        timeout(Duration::from_secs(30), connection_future)
-            .await
-            .context("SSH接続がタイムアウトしました")?
+        // 30秒でタイムアウト（エラー分類適用）
+        match timeout(Duration::from_secs(30), connection_future).await {
+            Ok(Ok(result)) => Ok(result),
+            Ok(Err(e)) => Err(anyhow::anyhow!("{}", Self::classify_error(&e))),
+            Err(_) => Err(anyhow::anyhow!(
+                "⏱️ タイムアウトエラー: SSH接続が30秒でタイムアウトしました\n\
+                 - サーバーが応答していない可能性があります\n\
+                 - ネットワーク接続を確認してください"
+            )),
+        }
     }
 
     /// リモートディレクトリを探索する
@@ -452,10 +458,17 @@ impl SshClient {
                 transferred_files, remote_path, local_path))
         };
 
-        // 2時間でタイムアウト（大容量バックアップ対応）
-        timeout(Duration::from_secs(7200), backup_future)
-            .await
-            .context("バックアップ処理がタイムアウトしました")?
+        // 2時間でタイムアウト（大容量バックアップ対応・エラー分類適用）
+        match timeout(Duration::from_secs(7200), backup_future).await {
+            Ok(Ok(result)) => Ok(result),
+            Ok(Err(e)) => Err(anyhow::anyhow!("{}", Self::classify_error(&e))),
+            Err(_) => Err(anyhow::anyhow!(
+                "⏱️ タイムアウトエラー: バックアップ処理が2時間でタイムアウトしました\n\
+                 - 非常に大容量のデータをバックアップしようとしている可能性があります\n\
+                 - ネットワーク速度が極端に遅い可能性があります\n\
+                 - バックアップ対象を分割することをお勧めします"
+            )),
+        }
     }
 
     /// ファイル転送の最適化実装（128KBバッファ使用）
@@ -487,6 +500,123 @@ impl SshClient {
         }
 
         Ok(total_bytes)
+    }
+
+    /// ファイルサイズに基づいてタイムアウト時間を動的に計算
+    ///
+    /// # 計算ロジック
+    /// - 基本タイムアウト: 30秒（ファイルオープンと小ファイル用）
+    /// - 小ファイル（<10MB）: 60秒
+    /// - 中ファイル（10MB-100MB）: 120秒
+    /// - 大ファイル（100MB-1GB）: 600秒
+    /// - 巨大ファイル（>1GB）: 1800秒（30分）
+    ///
+    /// これにより、無駄な長時間待機を避けつつ、大ファイル転送も確実に完了できる
+    fn calculate_file_timeout(file_size: u64) -> Duration {
+        const MB: u64 = 1024 * 1024;
+        const GB: u64 = 1024 * MB;
+
+        if file_size < 10 * MB {
+            Duration::from_secs(60)  // 小ファイル: 1分
+        } else if file_size < 100 * MB {
+            Duration::from_secs(120)  // 中ファイル: 2分
+        } else if file_size < GB {
+            Duration::from_secs(600)  // 大ファイル: 10分
+        } else {
+            Duration::from_secs(1800)  // 巨大ファイル: 30分
+        }
+    }
+
+    /// エラーを分類してユーザーフレンドリーなメッセージを生成
+    ///
+    /// # エラー分類
+    /// 1. 認証エラー: 秘密鍵の問題、パスフレーズ不正など
+    /// 2. ネットワークエラー: 接続タイムアウト、DNS解決失敗など
+    /// 3. パーミッションエラー: 読み取り/書き込み権限不足
+    /// 4. ファイルシステムエラー: ディスク容量不足、パス不正など
+    /// 5. タイムアウトエラー: 転送タイムアウト
+    /// 6. その他のエラー
+    fn classify_error(error: &anyhow::Error) -> String {
+        let error_str = error.to_string().to_lowercase();
+
+        // 認証エラー
+        if error_str.contains("authentication")
+            || error_str.contains("publickey")
+            || error_str.contains("passphrase")
+            || error_str.contains("permission denied (publickey)") {
+            return format!(
+                "🔐 認証エラー: SSH秘密鍵の確認が必要です\n\
+                 - 秘密鍵のパスが正しいか確認してください\n\
+                 - 秘密鍵のパーミッションが600または400になっているか確認してください\n\
+                 - サーバーに公開鍵が正しく登録されているか確認してください\n\n\
+                 詳細: {}", error
+            );
+        }
+
+        // ネットワークエラー
+        if error_str.contains("connection")
+            || error_str.contains("timeout")
+            || error_str.contains("dns")
+            || error_str.contains("network")
+            || error_str.contains("host") {
+            return format!(
+                "🌐 ネットワークエラー: サーバーへの接続に失敗しました\n\
+                 - インターネット接続を確認してください\n\
+                 - サーバーのホスト名とポート番号が正しいか確認してください\n\
+                 - ファイアウォールやVPNの設定を確認してください\n\n\
+                 詳細: {}", error
+            );
+        }
+
+        // パーミッションエラー
+        if error_str.contains("permission denied")
+            || error_str.contains("access denied")
+            || error_str.contains("forbidden") {
+            return format!(
+                "🚫 権限エラー: ファイルやディレクトリへのアクセスが拒否されました\n\
+                 - サーバー上のファイル/ディレクトリの権限を確認してください\n\
+                 - ローカルの保存先ディレクトリの書き込み権限を確認してください\n\n\
+                 詳細: {}", error
+            );
+        }
+
+        // ディスク容量エラー
+        if error_str.contains("no space")
+            || error_str.contains("disk full")
+            || error_str.contains("quota") {
+            return format!(
+                "💾 ディスク容量エラー: ストレージに空き容量がありません\n\
+                 - ローカルディスクの空き容量を確保してください\n\
+                 - 不要なファイルを削除するか、別のディスクを選択してください\n\n\
+                 詳細: {}", error
+            );
+        }
+
+        // タイムアウトエラー
+        if error_str.contains("timeout") || error_str.contains("timed out") {
+            return format!(
+                "⏱️ タイムアウトエラー: 処理時間が制限を超えました\n\
+                 - ネットワーク速度が遅い可能性があります\n\
+                 - 大容量ファイルの場合、時間をおいて再試行してください\n\
+                 - サーバーの応答が遅い可能性があります\n\n\
+                 詳細: {}", error
+            );
+        }
+
+        // ファイルシステムエラー
+        if error_str.contains("no such file")
+            || error_str.contains("not found")
+            || error_str.contains("invalid path") {
+            return format!(
+                "📁 ファイルシステムエラー: ファイルまたはディレクトリが見つかりません\n\
+                 - 指定したパスが正しいか確認してください\n\
+                 - サーバー上にファイル/ディレクトリが存在するか確認してください\n\n\
+                 詳細: {}", error
+            );
+        }
+
+        // その他のエラー（詳細をそのまま表示）
+        format!("❌ エラーが発生しました: {}", error)
     }
 
     /// 再帰的にディレクトリをバックアップする
@@ -533,17 +663,18 @@ impl SshClient {
                         let mut local_file = std::fs::File::create(&local_entry_path)
                             .with_context(|| format!("ローカルファイルの作成に失敗: {:?}", local_entry_path))?;
 
-                        // 最適化された転送関数を使用（128KBバッファ）
-                        Self::transfer_file_optimized(&mut remote_file, &mut local_file)
+                        // 最適化された転送関数を使用（128KBバッファ）- 転送バイト数を返す
+                        let transferred = Self::transfer_file_optimized(&mut remote_file, &mut local_file)
                             .with_context(|| format!("ファイル転送に失敗: {:?}", entry_path))?;
 
-                        Ok::<(), anyhow::Error>(())
+                        Ok::<u64, anyhow::Error>(transferred)
                     };
 
-                    timeout(Duration::from_secs(600), file_transfer)
+                    let _transferred = timeout(Duration::from_secs(600), file_transfer)
                         .await
                         .with_context(|| format!("ファイル転送がタイムアウトしました: {:?}", entry_path))??;
 
+                    // 注: この関数は進捗コールバックなしバージョンのため、transferred_bytesは使用しない
                     total_files += 1;
 
                 } else if stat.is_dir() {
@@ -593,6 +724,7 @@ impl SshClient {
             .with_context(|| format!("ローカルディレクトリの作成に失敗: {:?}", local_dir))?;
 
         let mut total_files = 0;
+        let mut total_transferred_bytes = 0u64;
         let mut throttle = ProgressThrottle::new();
 
         // リモートディレクトリを読み取り
@@ -616,20 +748,26 @@ impl SshClient {
                 let local_entry_path = local_dir.join(entry_name);
 
                 if stat.is_file() {
-                    // 進捗報告（スロットル制御付き）
-                    if throttle.should_update(0) {
+                    // 進捗報告（スロットル制御付き - 正確な転送バイト数で更新）
+                    if throttle.should_update(total_transferred_bytes) {
                         progress_callback(BackupProgress {
                             phase: "ファイル転送中".to_string(),
                             transferred_files: total_files,
                             total_files: None,
-                            transferred_bytes: 0,
-                            current_file: entry_path.to_string_lossy().to_string().into(),
+                            transferred_bytes: total_transferred_bytes,
+                            current_file: Some(entry_path.to_string_lossy().to_string()),
                             elapsed_seconds: throttle.get_elapsed_seconds(),
-                            transfer_speed: throttle.calculate_speed(0),
+                            transfer_speed: throttle.calculate_speed(total_transferred_bytes),
                         });
                     }
 
-                    // ファイルをダウンロード（個別ファイルに10分のタイムアウト）
+                    // ファイルサイズ取得（Noneの場合は0として扱う）
+                    let file_size = stat.size.unwrap_or(0);
+
+                    // ファイルサイズに基づいて動的にタイムアウトを計算
+                    let file_timeout = Self::calculate_file_timeout(file_size);
+
+                    // ファイルをダウンロード（ファイルサイズに応じた動的タイムアウト）
                     let file_transfer = async {
                         let mut remote_file = sftp.open(&entry_path)
                             .with_context(|| format!("リモートファイルのオープンに失敗: {:?}", entry_path))?;
@@ -637,17 +775,18 @@ impl SshClient {
                         let mut local_file = std::fs::File::create(&local_entry_path)
                             .with_context(|| format!("ローカルファイルの作成に失敗: {:?}", local_entry_path))?;
 
-                        // 最適化された転送関数を使用（128KBバッファ）
-                        Self::transfer_file_optimized(&mut remote_file, &mut local_file)
+                        // 最適化された転送関数を使用（128KBバッファ）- 転送バイト数を返す
+                        let transferred = Self::transfer_file_optimized(&mut remote_file, &mut local_file)
                             .with_context(|| format!("ファイル転送に失敗: {:?}", entry_path))?;
 
-                        Ok::<(), anyhow::Error>(())
+                        Ok::<u64, anyhow::Error>(transferred)
                     };
 
-                    timeout(Duration::from_secs(600), file_transfer)
+                    let transferred = timeout(file_timeout, file_transfer)
                         .await
-                        .with_context(|| format!("ファイル転送がタイムアウトしました: {:?}", entry_path))??;
+                        .with_context(|| format!("ファイル転送がタイムアウトしました（{}秒）: {:?}", file_timeout.as_secs(), entry_path))??;
 
+                    total_transferred_bytes += transferred;
                     total_files += 1;
 
                 } else if stat.is_dir() {
