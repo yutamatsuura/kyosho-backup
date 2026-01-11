@@ -71,20 +71,66 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseName: 'Kyosho Backup ${{ github.ref_name }}'
           releaseBody: |
-            ## Kyosho Backup ${{ github.ref_name }}
+            # Kyosho Backup ${{ github.ref_name }}
 
-            サーバーバックアップ自動化ツール
+            エックスサーバー専用のバックアップ自動化デスクトップアプリケーション
 
-            ### ダウンロード
-            - **Windows**: `.msi` または `-setup.exe` をダウンロード
-            - **macOS**: `.dmg` をダウンロード（Intel版とApple Silicon版があります）
-            - **Linux**: `.deb` または `.AppImage` をダウンロード
+            ## 📥 ダウンロード
 
-            ### Phase 10 最適化内容
-            - ✅ 128KBバッファ最適化（転送速度1.5-3倍向上）
-            - ✅ 動的タイムアウト計算
-            - ✅ エラーメッセージ分類・改善
-            - ✅ 進捗報告の精密化
+            お使いのOSに合わせてダウンロードしてください。
+
+            ### Windows
+            - `.msi`（推奨）または `-setup.exe` をダウンロード
+
+            ### macOS
+            - `.dmg` をダウンロード
+              - **Intel Mac**（2020年以前）: `x64.dmg`
+              - **Apple Silicon**（M1/M2/M3）: `aarch64.dmg`
+
+            ### Linux
+            - **Ubuntu/Debian**: `.deb`（推奨）
+            - **すべてのLinux**: `.AppImage`（インストール不要）
+
+            ---
+
+            ## 🚀 主な機能
+
+            - エックスサーバー専用設計（SSH公開鍵認証）
+            - ワンクリックで簡単バックアップ
+            - ドメイン自動探索機能
+            - 高速ファイル転送
+            - リアルタイム進捗表示
+
+            ---
+
+            ## 📖 使い方
+
+            1. **SSH秘密鍵を選択** - エックスサーバーで登録した公開鍵に対応する秘密鍵ファイルを選択
+            2. **接続テスト** - サーバーへの接続を確認
+            3. **ドメイン探索** - サーバー上のドメインを自動検出
+            4. **バックアップ元を選択** - バックアップしたいドメインをクリック
+            5. **保存先を選択** - ローカルの保存先フォルダを指定
+            6. **バックアップ開始** - ボタンをクリックして実行
+
+            ---
+
+            ## ⚠️ 動作環境
+
+            - **Windows**: Windows 10 (64bit) 以降
+            - **macOS**: macOS 11 Big Sur以降
+            - **Linux**: Ubuntu 20.04以降 / Debian 11以降
+
+            ---
+
+            ## 🔒 セキュリティ
+
+            - SSH公開鍵認証のみサポート
+            - すべての通信はSSH暗号化
+            - 認証情報はローカルマシンにのみ保存
+
+            ---
+
+            問題が発生した場合は [Issues](https://github.com/yutamatsuura/kyosho-backup/issues) でご報告ください。
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
